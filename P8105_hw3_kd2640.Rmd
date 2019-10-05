@@ -1,0 +1,74 @@
+---
+title: "Homework 3"
+author: "Keyanna Davis"
+date: "10/5/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggridges)
+
+```
+
+
+#Problem 1
+```{r}
+load("~/Downloads/instacart.rda")
+nrow(instacart)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Problem 2
+```{r}
+load("~/Downloads/brfss_smart2010.rda")
+brfss = rename(brfss_smart2010)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Problem 3
+```{r}
+accel_data = read_csv("~/Desktop/p8105_hw3_kd2640/data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+head() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    values_to= " "
+  ) %>% view 
+```
+
+
+

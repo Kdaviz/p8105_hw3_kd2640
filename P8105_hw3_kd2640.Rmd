@@ -6,27 +6,92 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(ggridges)
-
+library(viridis)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 
 #Problem 1
 ```{r}
 load("~/Downloads/instacart.rda")
-nrow(instacart)
+ instacart %>% 
+  count(aisle) %>% 
+   arrange(desc(n))
+
+
+ instacart %>% 
+   group_by(aisle) %>% 
+   summarize(n = n()) %>% 
+   filter(n > 10000) %>% 
+   ggplot(aes( x = n, y = aisle)) +
+  geom_point(alpha = .5)
+# there are 134 aisle and fresh vegatables and fresh fruits have the most items ordered from. 
 
 ```
 
+```{r}
+BI = instacart %>% 
+     filter(aisle%in% c("baking ingredients") ) %>% 
+   group_by(aisle, product_name) %>% 
+   summarize(n=n()) %>% 
+     arrange(desc(n)) %>% 
+     head(3)
+
+DC = instacart %>% 
+     filter(aisle%in% c("dog food care") ) %>% 
+   group_by(aisle, product_name) %>% 
+   summarize(n=n()) %>% 
+     arrange(desc(n)) %>% 
+     head(3)  
+
+PVF = instacart %>% 
+     filter(aisle%in% c("packaged vegetables fruits") ) %>% 
+   group_by(aisle, product_name) %>% 
+   summarize(n=n()) %>% 
+     arrange(desc(n)) %>% 
+     head(3)  
+rbind(BI, DC, PVF)
+```
 
 
-
-
-
-
-
+```{r}
+apples_and_icecream = instacart %>% 
+  group_by(product_name, order_dow) %>% 
+  summarise(order_hour_of_day = n()) %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  select(product_name, order_dow, order_hour_of_day) %>% 
+  mutate(
+    week_day = recode(
+      order_dow,
+      '0' = "Sunday",
+      '1' = "Monday",
+      '2' = "Tuesday",
+      '3' = "Wednesday",
+      '4' = "Thursday",
+      '5' = "Friday",
+      '6' = "Saturday"
+    )
+  ) %>%
+  select(product_name, week_day, order_hour_of_day) %>% 
+  
+  pivot_wider(
+    names_from = "week_day",
+    values_from = "order_hour_of_day") 
+```
 
 
 
@@ -37,7 +102,20 @@ nrow(instacart)
 #Problem 2
 ```{r}
 load("~/Downloads/brfss_smart2010.rda")
-brfss = rename(brfss_smart2010)
+
+brfss = brfss_smart2010 %>% 
+rename("location" = "Locationabbr",
+       "county" = "Locationdesc"
+       ) %>% 
+  mutate(
+    county = str_sub(county, 5)
+  ) %>% 
+  filter(Topic=="Overall Health", Response %in% c("Poor", "Excellent")) %>% 
+  arrange(desc(Response))
+
+
+states = filter(brfss, Year == "2002")
+  
 ```
 
 

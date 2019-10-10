@@ -9,6 +9,7 @@ output: github_document
 library(tidyverse)
 library(viridis)
 library(knitr)
+library(p8105.datasets)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -31,15 +32,14 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
 
 ```{r}
-load("~/Downloads/instacart.rda")
- instacart %>% 
+data("instacart") 
+instacart %>% 
   count(aisle) %>% 
    arrange(desc(n))
 
 ```
 
 The instacart dataset has `r nrow(instacart)` rows and `r ncol(instacart)` columns in the data. Each row contains information about an item that was ordered. The variables include the order information such as order id, reorders, order day of week, etc. The variables also give information about the item such as product name, product id, aisle, department, etc. 
-
 
 
 
@@ -75,7 +75,8 @@ PVF = instacart %>%
      arrange(desc(n)) %>% 
      head(3)  
 
-rbind(BI, DC, PVF) %>% 
+rbind(BI, DC, PVF) %>%
+  arrange(desc(n)) %>% 
   knitr::kable()
 ```
 
@@ -119,7 +120,7 @@ apples_and_icecream %>%
 * organize responses as a factor taking levels from “Excellent” to “Poor”
 
 ```{r}
-load("~/Downloads/brfss_smart2010.rda")
+data("bfrss_smart2010") 
 
 brfss = brfss_smart2010 %>% 
 rename("state" = "Locationabbr",
@@ -128,12 +129,16 @@ rename("state" = "Locationabbr",
   mutate(
     county = str_sub(county, 5)
   ) %>% 
-  filter(Topic=="Overall Health", Response %in% c("Excellent", "Very Good", "Good", "Fair", "Poor"))%>% 
-  arrange(desc(Response)) %>% 
-  select(-Question,-(Confidence_limit_Low:GeoLocation)) 
-  
-  
+     mutate(
+     Response = factor(Response, levels = c("Excellent", "Very good", "Good", "Fair", "Poor"))
+   ) %>%
+   arrange(desc(Response)) %>% 
+  filter(Topic=="Overall Health") %>% 
+  select(-Question,-(Confidence_limit_Low:GeoLocation)) %>% 
+  drop_na()
+ 
 ```
+
 
 ####Question 2.1
 In 2002, which states were observed at 7 or more locations? What about in 2010?
@@ -164,7 +169,7 @@ brfss %>%
   select(Response, Year, state, Data_value) %>% 
   group_by(Response, Year, state) %>% 
   summarise(avg_data_value = mean(Data_value)) %>% 
-  ggplot(aes(x = avg_data_value, y= state, color = Year))+
+  ggplot(aes(x = Year, y= avg_data_value, color = state))+
   geom_line()
 ```
 
@@ -175,8 +180,8 @@ Make a two-panel plot showing, for the years 2006, and 2010, distribution of dat
 ```{r}
 brfss %>%
   filter(Year %in% c("2006", "2010"), state == "NY") %>% 
-  ggplot(aes(x=Data_value, fill=Response)) +
-  geom_density(alpha = .5) +
+  ggplot(aes(x=Response, y=Data_value, color=Response)) +
+  geom_boxplot(alpha = .5) +
   facet_grid(~Year)  + 
   viridis::scale_fill_viridis(discrete = TRUE)
 ```
@@ -195,13 +200,44 @@ Accelerometers have become an appealing alternative to self-report techniques fo
 ```{r}
 accel_data = read_csv("~/Desktop/p8105_hw3_kd2640/data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
-head() %>% 
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity",
-    values_to= " "
-  ) %>% view 
+    names_to = "minutes",
+    names_prefix = "activity_",
+    values_to= "counts"
+  )  %>% 
+  mutate(
+    weekday = day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  mutate(
+   minutes = as.numeric(minutes)
+  )
 ```
 
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r}
+
+  accel_data %>% 
+  group_by(week, day) %>% 
+  summarize(total_activity = sum(counts)) %>% 
+
+ ggplot(aes(x = week ,y = total_activity, color = day)) +
+  geom_line()
+  
+  
+```
+
+```{r}
+accel_data %>% 
+  mutate(
+    hour = minutes %/% 60) %>%
+  group_by(hour, day, week) %>% 
+  summarise(total = sum(counts)) %>% 
+  ggplot(aes(x = hour, y = total, color = day)) +
+  geom_line()
+  
+
+  
+```
 
 

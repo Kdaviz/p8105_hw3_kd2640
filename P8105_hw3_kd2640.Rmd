@@ -234,7 +234,12 @@ brfss %>%
   group_by(Response, Year, state) %>% 
   summarise(avg_data_value = mean(Data_value)) %>% 
   ggplot(aes(x = Year, y= avg_data_value, group=state, color = state))+
-  geom_line()
+  geom_line() +
+   labs(
+    title = "Data Values of States Across the Years",
+    y = "average data value",
+    x = "year"
+  )
 ```
 
 The plot shown above indicates that the in `2005` `West Vigrinia` has the lowest `averaged data value` among the rest of the states throughtout the years. In `2003` `Connecticut` has the highest `averaged data value` among the rest of the states throughout the years.  
@@ -250,7 +255,12 @@ brfss %>%
   ggplot(aes(x=Response, y=Data_value, color=Response)) +
   geom_boxplot(alpha = .5) +
   facet_grid(~Year)  + 
-  viridis::scale_fill_viridis(discrete = TRUE)
+  viridis::scale_fill_viridis(discrete = TRUE) +
+   labs(
+    title = "Distributions of Data Value by Responses of Year 2010 and 2006",
+    x = "Response",
+    y = "Data Value"
+  )
 ```
 
 
@@ -278,12 +288,16 @@ accel_data = read_csv("~/Desktop/p8105_hw3_kd2640/data/accel_data.csv") %>%
     values_to= "counts"
   )  %>% 
   mutate(
-    day_of_week = if_else(day=="Saturday"| day=="Sunday", "weekend", "weekday")
+    type_of_day = if_else(day=="Saturday"| day=="Sunday", "weekend", "weekday")
   ) %>% 
   mutate(
-   minutes = as.numeric(minutes)
+   minutes = as.numeric(minutes),
+   day = as.factor(day),
+   day_id = as.factor(day_id),
+   week = as.factor(week),
+   counts = as.numeric(counts)
   )
-nrow((accel_data))
+
 ```
 
 The accelerometer dataset has `r nrow(accel_data)` observations and `r ncol(accel_data)` variables including `week`, `day_id`, `day`, `minutes`, `counts`, and `day_of_week`. 
@@ -294,8 +308,8 @@ The accelerometer dataset has `r nrow(accel_data)` observations and `r ncol(acce
 ```{r}
 accel_data2 =
   accel_data %>% 
-  select(week, minutes, day, counts) %>% 
-  group_by(week, day) %>% 
+  select(week, minutes, day, counts, type_of_day) %>% 
+  group_by(week, day, type_of_day) %>% 
   summarize(total_activity = sum(counts)) 
 
   accel_data2 %>% 
@@ -303,15 +317,20 @@ accel_data2 =
 
   
  accel_data2 %>%  
-   ggplot(aes(x = week, y = total_activity, color = day)) +
-  geom_line() +
-  geom_point()
+   ggplot(aes(x= week, y=total_activity, color=day)) +
+  geom_point() +
+    labs(
+    title = "Weekly Total Activity By Days",
+    x = "week",
+    y = "total activity"
+  )
+  
 
 
   
 ```
 
-The above graph shows a `spaghetti plot`. On `Wednesday` the activity is steady throughout the weeks. I don't see any trends on the other days of the week it seems the activity is up and down througout the `5` weeks. 
+The above graph shows a `scatter plot`. On `Wednesday` the activity for the 63 year man is steady throughout the weeks. I don't see any trends on the other days of the week it seems the activity is up and down througout the `5` weeks. 
 
 
 
@@ -322,6 +341,13 @@ The above graph shows a `spaghetti plot`. On `Wednesday` the activity is steady 
 ```{r}
 accel_data %>% 
   ggplot(aes(x = minutes, y = counts, color = day, group = day_id)) +
-  geom_line()
+  geom_line() +
+   labs(
+    title = "24-Hour Activity Time",
+    x = "time in minutes",
+    y = "activity counts"
+  )
 ```
 
+
+From this graph, it seems that the 63 year man is more activity later in the day on `Friday`. During the early part of the day he has lower activity throughtout the days of the week. On `Thursday` he has higher activity in the middle of the day. 
